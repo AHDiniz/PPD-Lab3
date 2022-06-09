@@ -103,7 +103,7 @@ def mine():
 
         seed_calculator.run()
 
-        if len(threads) == max_threads - 1:
+        if len(threads) >= max_threads - 1:
             for s in threads:
                 s.join()
 
