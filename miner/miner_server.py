@@ -11,7 +11,7 @@ from transaction_bo import TransactionBO
 transaction_bo = TransactionBO()
 
 mqttBroker = "127.0.0.1"
-mqttBroker = "broker.emqx.io"
+#mqttBroker = "broker.emqx.io"
 client = mqtt.Client("Server")
 client.connect(mqttBroker)
 

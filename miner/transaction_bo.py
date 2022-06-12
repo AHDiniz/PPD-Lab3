@@ -6,7 +6,7 @@ from submit_status import SubmitStatus
 from transaction_dao import TransactionDAO
 from transaction_status import TransactionStatus
 from transaction import Transaction
-
+import bitarray
 
 class TransactionBO:
     invalid_id = -1
@@ -55,15 +55,14 @@ class TransactionBO:
         if transaction.seed is not None:
             return SubmitStatus.ja_solucionado
 
-        hashed_seed = hashlib.sha1(
-            seed.to_bytes(8, byteorder='big')).hexdigest()
-        prefix = hashed_seed[0:transaction.challenge]
-        print("seed: " + str(seed))
-        print("prefix: " + prefix)
+        ba = bitarray.bitarray()
+        hash_byte = hashlib.sha1(seed.to_bytes(8, byteorder='big'))
+        ba.frombytes(hash_byte.digest())
+        prefix = ba[0:transaction.challenge]
 
         # iterate over prefix characters to check if it is a valid seed
         for i in range(0, transaction.challenge):
-            if prefix[i] != "0":
+            if prefix[i] != 0:
                 return SubmitStatus.invalido
 
         # mark the transaction as solved and the winner, return valid

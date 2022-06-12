@@ -17,7 +17,7 @@ class TransactionDAO:
     # add a transaction to the list of transactions
     def create_transaction(self) -> None:
         transaction = Transaction(
-            self.get_last_transaction().transaction_id + 1, random.randint(1, 20), None, -1)
+            self.get_last_transaction().transaction_id + 1, random.randint(1, 128), None, -1)
         transactions.append(transaction)
         self.print_transactions()
 
