@@ -7,13 +7,24 @@ import threading as thrd
 from custom_encoder import CustomEncoder
 from challenge_response import ChallengeResponse
 from submit_payload import SubmitPayload
-from multiprocessing import cpu_count, Manager
+from multiprocessing import cpu_count
 from time import perf_counter
-import bitarray
 
 c = thrd.Condition()
 current_challenge = None
 
+def bitsof(bt, nbits):
+    # Directly convert enough bytes to an int to ensure you have at least as many bits
+    # as needed, but no more
+    neededbytes = (nbits+7)//8
+    if neededbytes > len(bt):
+        raise ValueError("Require {} bytes, received {}".format(neededbytes, len(bt))) 
+    i = int.from_bytes(bt[:neededbytes], 'big')
+    # If there were a non-byte aligned number of bits requested,
+    # shift off the excess from the right (which came from the last byte processed)
+    if nbits % 8:
+        i >>= 8 - nbits % 8
+    return i
 
 class SeedCalculator(thrd.Thread):
     def __init__(self, id):
@@ -31,7 +42,6 @@ class SeedCalculator(thrd.Thread):
         return self.__time_to_finish
 
     def run(self):
-        start = perf_counter()
         print("SeedCalculator {} started".format(self.__id))
         challenge = -1
         transaction_id = -1
@@ -45,21 +55,17 @@ class SeedCalculator(thrd.Thread):
             # Reset the counter
             if (transaction_id != current_challenge.transaction_id):
                 start = perf_counter()
-
-            challenge = current_challenge.challenge
-            transaction_id = current_challenge.transaction_id
+                challenge = current_challenge.challenge
+                transaction_id = current_challenge.transaction_id
 
             # Calculate the seed
             seed = random.randint(0, 2000000000)
-            ba = bitarray.bitarray()
             hash_byte = hashlib.sha1(seed.to_bytes(8, byteorder='big'))
-            ba.frombytes(hash_byte.digest())
-            prefix = ba[0:challenge]
+            prefix = bitsof(hash_byte.digest(), challenge)
 
             # iterate over prefix characters to check if it is a valid seed
-            for i in range(0, challenge):
-                if prefix[i] != 0:
-                    break
+            if (prefix != 0):
+                continue
             else:
                 # if the prefix is all zeros, the seed is valid and we can break and submit the solution
                 c.acquire()

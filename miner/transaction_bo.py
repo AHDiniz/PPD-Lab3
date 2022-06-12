@@ -8,6 +8,19 @@ from transaction_status import TransactionStatus
 from transaction import Transaction
 import bitarray
 
+def bitsof(bt, nbits):
+    # Directly convert enough bytes to an int to ensure you have at least as many bits
+    # as needed, but no more
+    neededbytes = (nbits+7)//8
+    if neededbytes > len(bt):
+        raise ValueError("Require {} bytes, received {}".format(neededbytes, len(bt))) 
+    i = int.from_bytes(bt[:neededbytes], 'big')
+    # If there were a non-byte aligned number of bits requested,
+    # shift off the excess from the right (which came from the last byte processed)
+    if nbits % 8:
+        i >>= 8 - nbits % 8
+    return i
+
 class TransactionBO:
     invalid_id = -1
 
@@ -57,13 +70,11 @@ class TransactionBO:
 
         ba = bitarray.bitarray()
         hash_byte = hashlib.sha1(seed.to_bytes(8, byteorder='big'))
-        ba.frombytes(hash_byte.digest())
-        prefix = ba[0:transaction.challenge]
+        prefix = bitsof(hash_byte.digest(), transaction.challenge)
 
         # iterate over prefix characters to check if it is a valid seed
-        for i in range(0, transaction.challenge):
-            if prefix[i] != 0:
-                return SubmitStatus.invalido
+        if (prefix != 0):
+            return SubmitStatus.invalido
 
         # mark the transaction as solved and the winner, return valid
         transaction.seed = seed
