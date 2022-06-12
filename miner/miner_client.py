@@ -33,12 +33,23 @@ class SeedCalculator(thrd.Thread):
     def run(self):
         start = perf_counter()
         print("SeedCalculator {} started".format(self.__id))
+        challenge = -1
+        transaction_id = -1
         while (True):
             global current_challenge
+
+            # Wait for a challenge
             if (current_challenge is None):
                 continue
+
+            # Reset the counter
+            if (transaction_id != current_challenge.transaction_id):
+                start = perf_counter()
+
             challenge = current_challenge.challenge
             transaction_id = current_challenge.transaction_id
+
+            # Calculate the seed
             seed = random.randint(0, 2000000000)
             ba = bitarray.bitarray()
             hash_byte = hashlib.sha1(seed.to_bytes(8, byteorder='big'))
@@ -50,7 +61,10 @@ class SeedCalculator(thrd.Thread):
                 if prefix[i] != 0:
                     break
             else:
+                # if the prefix is all zeros, the seed is valid and we can break and submit the solution
                 c.acquire()
+
+                # if someone else has already submitted the solution, we need to wait for them to finish and not submit again
                 if (current_challenge.transaction_id != transaction_id):
                     c.release()
                     continue
