@@ -1,6 +1,6 @@
 # PPD-Lab3
 
-Experimento com arquitetura publisher/subscriber para sistemas distribuídos.
+Experimento com arquitetura publisher/subscriber para sistemas distribuídos. Um pequeno vídeo mostrando sua execução pode ser encontrado [neste link](https://drive.google.com/uc?id=1BiHqm--zcvpr3hkBWhK1H-SsqZwX8TOW&export=download).
 
 ## Instalação
 Para rodar corretamente este projeto, instale as dependencias python contidas no arquivo [requirements.txt](./requirements.txt). Uma forma rápida de realizar essas instalações é rodar, caso esteja usando python, o comando:
